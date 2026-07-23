@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Your Air Quality — WPF Community Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #07294D;
+  --bg-dark:   #041d38;
+  --bg-card:   #0d3a63;
+  --bg-card2:  #0a3058;
+  --accent:    #41b6e6;
+  --accent2:   #6ee7ca;
+  --white:     #ffffff;
+  --muted:     rgba(255,255,255,0.60);
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: var(--bg-dark);
+  color: var(--white);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: rgba(4,29,56,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(65,182,230,0.12);
+}
+.nav-logos {
+  display: flex; align-items: center; gap: 1rem;
+}
+.nav-logo-img {
+  height: 34px; width: auto;
+  opacity: 0.90;
+  transition: opacity 0.2s;
+}
+.nav-logo-img:hover { opacity: 1; }
+.nav-logo-divider {
+  width: 1px; height: 26px;
+  background: rgba(255,255,255,0.20);
+}
+.nav-back {
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  display: flex; align-items: center; gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(65,182,230,0.30);
+  border-radius: 8px;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.nav-back:hover {
+  background: rgba(65,182,230,0.10);
+  border-color: rgba(65,182,230,0.60);
+}
+.nav-back:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 3rem 1.5rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.hero-badge {
+  display: inline-block;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent2);
+  background: rgba(110,231,202,0.10);
+  border: 1px solid rgba(110,231,202,0.25);
+  border-radius: 100px;
+  padding: 0.3rem 0.9rem;
+  margin-bottom: 1.2rem;
+}
+.hero h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.9rem;
+}
+.hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+.hero p {
+  font-size: 1rem; font-weight: 400;
+  color: var(--muted);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── IFRAME SECTION ── */
+.dashboard-section {
+  padding: 0 1rem 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.iframe-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(65,182,230,0.15);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.35),
+    0 1px 4px rgba(0,0,0,0.20);
+}
+.iframe-card iframe {
+  display: block;
+  width: 100%;
+  height: 680px;
+  border: none;
+  border-radius: var(--radius-xl);
+}
+
+/* No-token state */
+.no-token {
+  display: none;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  color: var(--muted);
+}
+.no-token svg {
+  margin-bottom: 1rem;
+  opacity: 0.4;
+}
+.no-token h3 {
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.no-token p { font-size: 0.9rem; }
+
+/* ── METRICS SECTION ── */
+.section {
+  padding: 3.5rem 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.section-label {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+}
+.section h2 {
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.6rem;
+}
+.section h2 em {
+  font-style: normal;
+  color: var(--accent);
+}
+.section-intro {
+  font-size: 0.95rem;
+  color: var(--muted);
+  max-width: 580px;
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(65,182,230,0.12);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem 1.4rem 1.2rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.metric-card:hover {
+  border-color: rgba(65,182,230,0.32);
+  transform: translateY(-2px);
+}
+.metric-icon {
+  width: 2.6rem; height: 2.6rem;
+  background: rgba(65,182,230,0.12);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+.metric-card h3 {
+  font-size: 0.95rem; font-weight: 700;
+  margin-bottom: 0.15rem;
+  color: var(--white);
+}
+.metric-card .unit {
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.55rem;
+}
+.metric-card p {
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+/* ── ABOUT STRIP ── */
+.about-strip {
+  background: var(--bg-card2);
+  border-top: 1px solid rgba(65,182,230,0.10);
+  border-bottom: 1px solid rgba(65,182,230,0.10);
+}
+.about-strip .inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+@media (min-width: 640px) {
+  .about-strip .inner {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 3rem;
+  }
+}
+.about-strip .text { flex: 1; }
+.about-strip .text h2 {
+  font-size: 1.4rem; font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+.about-strip .text h2 em {
+  font-style: normal;
+  color: var(--accent);
+}
+.about-strip .text p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+.btn-primary {
+  display: inline-block;
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--bg-dark);
+  background: var(--accent);
+  border: none; border-radius: 10px;
+  padding: 0.65rem 1.4rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn-primary:active { transform: translateY(0); }
+
+.about-strip .stats {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+@media (min-width: 640px) {
+  .about-strip .stats { flex-direction: column; gap: 1.2rem; }
+}
+.stat { }
+.stat .val {
+  font-size: 1.5rem; font-weight: 900;
+  color: var(--accent2);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.stat .lbl {
+  font-size: 0.75rem; font-weight: 500;
+  color: var(--muted);
+}
+
+/* ── FOOTER ── */
+footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer-logos { display: flex; align-items: center; gap: 1.2rem; }
+.footer-logo-img { height: 32px; width: auto; opacity: 0.75; transition: opacity 0.2s; }
+.footer-logo-img:hover { opacity: 1; }
+.footer-copy {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.footer-copy a { color: var(--accent); text-decoration: none; }
+.footer-copy a:hover { text-decoration: underline; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero { padding: 2rem 1.2rem 1.5rem; }
+  .dashboard-section { padding: 0 0.75rem 2.5rem; }
+  .iframe-card iframe { height: 620px; }
+  .section { padding: 2.5rem 1.2rem; }
+  footer { padding: 2rem 1.2rem; flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logos">
+    <a href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/"
+       target="_blank" rel="noopener" title="Drexel University School of Engineering">
+      <img src="project_information/logos/school-of-engineering-primary_blue.png"
+           alt="Drexel University School of Engineering" class="nav-logo-img"/>
+    </a>
+    <div class="nav-logo-divider"></div>
+    <a href="https://williampennfoundation.org/program/environment-and-public-space"
+       target="_blank" rel="noopener" title="William Penn Foundation">
+      <img src="project_information/logos/WPFLogo_stacked_spectral.png"
+           alt="William Penn Foundation" class="nav-logo-img"/>
+    </a>
+  </div>
+  <a class="nav-back" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Project Info
+  </a>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-badge">Your Home Sensor — Live Data</div>
+  <h1>Your <em>Air Quality</em>,<br/>Right Now</h1>
+  <p>Real-time readings from the sensor installed in your home, averaged every 15 minutes.</p>
+</div>
+
+<!-- ── DASHBOARD IFRAME ── -->
+<div class="dashboard-section">
+  <div class="iframe-card">
+    <iframe id="sensor-iframe"
+            src=""
+            title="Live air quality sensor data"
+            allow="fullscreen"
+            loading="lazy">
+    </iframe>
+    <div class="no-token" id="no-token">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="20" stroke="white" stroke-width="2.5"/>
+        <path d="M24 15v10M24 33v.5" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <h3>No sensor linked</h3>
+      <p>This page requires a sensor token in the URL.<br/>
+         Please scan the QR code on your sensor device.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── WHAT YOU'RE LOOKING AT ── -->
+<div class="section">
+  <p class="section-label">Air Quality Metrics</p>
+  <h2>What you're <em>looking at</em></h2>
+  <p class="section-intro">
+    Your sensor measures six key indicators of indoor air quality, updated every 15 minutes.
+    Here's what each one means for your health and comfort.
+  </p>
+  <div class="metrics-grid">
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <!-- particles -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5"  cy="11" r="2.5" fill="#41b6e6" opacity="0.9"/>
+          <circle cx="12" cy="7"  r="2"   fill="#41b6e6" opacity="0.7"/>
+          <circle cx="17" cy="13" r="1.5" fill="#41b6e6" opacity="0.6"/>
+          <circle cx="9"  cy="16" r="1.5" fill="#6ee7ca" opacity="0.7"/>
+          <circle cx="15" cy="5"  r="1"   fill="#6ee7ca" opacity="0.5"/>
+        </svg>
+      </div>
+      <h3>PM2.5</h3>
+      <div class="unit">µg/m³ · Fine Particles</div>
+      <p>Tiny particles smaller than 2.5 micrometers that can travel deep into your lungs.
+         Sources include smoke, dust, and vehicle exhaust.
+         <strong style="color:var(--white)">Good: below 12 µg/m³.</strong></p>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <!-- wind / air -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 8.5 Q8 6 13 8.5 Q16 10 19 8" stroke="#41b6e6" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M2 12  Q7 10 11 12 Q14 13.5 18 11.5" stroke="#41b6e6" stroke-width="1.8" stroke-linecap="round" opacity="0.75"/>
+          <path d="M2 15.5 Q6 13.5 10 15.5 Q12 16.5 14 15" stroke="#6ee7ca" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+        </svg>
+      </div>
+      <h3>CO₂</h3>
+      <div class="unit">ppm · Carbon Dioxide</div>
+      <p>A key marker of ventilation. Outdoor air is ~420 ppm.
+         High indoor levels (above 1,000 ppm) can cause drowsiness and reduced focus.
+         <strong style="color:var(--white)">Open a window if it rises.</strong></p>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <!-- thermometer -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="2" width="4" height="12" rx="2" stroke="#41b6e6" stroke-width="1.6"/>
+          <rect x="10.2" y="3" width="1.6" height="8" rx="0.8" fill="#41b6e6" opacity="0.5"/>
+          <circle cx="11" cy="17" r="3" fill="#41b6e6" opacity="0.85"/>
+          <line x1="14" y1="6" x2="16" y2="6" stroke="#6ee7ca" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="14" y1="9" x2="15.5" y2="9" stroke="#6ee7ca" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+        </svg>
+      </div>
+      <h3>Temperature</h3>
+      <div class="unit">°C · Thermal Comfort</div>
+      <p>Your indoor air temperature. Extreme heat and cold both affect health — especially
+         for children and older adults.
+         <strong style="color:var(--white)">Comfort range: 18–26 °C.</strong></p>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <!-- water drop -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 3 C11 3 5 10 5 14 a6 6 0 0 0 12 0 C17 10 11 3 11 3Z"
+                stroke="#41b6e6" stroke-width="1.6" fill="#41b6e6" fill-opacity="0.18"/>
+          <path d="M8.5 15.5 Q9.5 12.5 13 13" stroke="#6ee7ca" stroke-width="1.3"
+                stroke-linecap="round" opacity="0.7"/>
+        </svg>
+      </div>
+      <h3>Humidity</h3>
+      <div class="unit">% RH · Relative Humidity</div>
+      <p>Too dry and you get irritated airways; too humid and mold and dust mites thrive.
+         <strong style="color:var(--white)">Ideal range: 30–50% RH.</strong></p>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <!-- molecule -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="2.8" stroke="#41b6e6" stroke-width="1.5"/>
+          <circle cx="4"  cy="6"  r="1.8" stroke="#6ee7ca" stroke-width="1.4"/>
+          <circle cx="18" cy="6"  r="1.8" stroke="#6ee7ca" stroke-width="1.4"/>
+          <circle cx="11" cy="19" r="1.8" stroke="#41b6e6" stroke-width="1.4" opacity="0.7"/>
+          <line x1="5.3"  y1="7.2"  x2="9.2"  y2="9.8"  stroke="#41b6e6" stroke-width="1.2" opacity="0.6"/>
+          <line x1="12.8" y1="9.8"  x2="16.7" y2="7.2"  stroke="#41b6e6" stroke-width="1.2" opacity="0.6"/>
+          <line x1="11"   y1="13.8" x2="11"   y2="17.2" stroke="#41b6e6" stroke-width="1.2" opacity="0.5"/>
+        </svg>
+      </div>
+      <h3>VOC</h3>
+      <div class="unit">ppm · Volatile Organic Compounds</div>
+      <p>Gases released from cleaning products, paints, furniture, and air fresheners.
+         Long-term exposure can affect respiratory health.
+         <strong style="color:var(--white)">Lower is always better.</strong></p>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <!-- flask -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 2 L8 10 L4 18 Q3.5 19.5 5 19.5 L17 19.5 Q18.5 19.5 18 18 L14 10 L14 2"
+                stroke="#41b6e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+                fill="#41b6e6" fill-opacity="0.10"/>
+          <line x1="7" y1="2" x2="15" y2="2" stroke="#41b6e6" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="8"  cy="15.5" r="1.2" fill="#6ee7ca" opacity="0.7"/>
+          <circle cx="13" cy="14"   r="0.9" fill="#6ee7ca" opacity="0.5"/>
+        </svg>
+      </div>
+      <h3>Formaldehyde</h3>
+      <div class="unit">mg/m³ · Common Indoor Pollutant</div>
+      <p>Found in building materials, wood products, and some fabrics.
+         Even low levels can irritate eyes, nose, and throat.
+         <strong style="color:var(--white)">Lower is always better.</strong></p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ABOUT THE STUDY ── -->
+<div class="about-strip">
+  <div class="inner">
+    <div class="text">
+      <h2>About <em>this study</em></h2>
+      <p>
+        This project is led by Drexel University's Department of Civil, Architectural and
+        Environmental Engineering, funded by the William Penn Foundation.
+        We are working with communities in four Philadelphia neighborhoods —
+        Point Breeze, Grays Ferry, Haddington, and Kingsessing — to monitor indoor
+        air quality and reduce exposure to PM2.5 and other pollutants.
+      </p>
+      <p>
+        Your participation directly contributes to research that will help improve
+        air quality across Philadelphia's environmental justice communities.
+      </p>
+      <a class="btn-primary" href="index.html">Learn more about the project →</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="val">~140</div>
+        <div class="lbl">Home sensors deployed</div>
+      </div>
+      <div class="stat">
+        <div class="val">4</div>
+        <div class="lbl">Neighborhoods</div>
+      </div>
+      <div class="stat">
+        <div class="val">18 mo.</div>
+        <div class="lbl">Monitoring campaign</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logos">
+    <a href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/"
+       target="_blank" rel="noopener">
+      <img src="project_information/logos/school-of-engineering-primary_blue.png"
+           alt="Drexel University" class="footer-logo-img"/>
+    </a>
+    <div class="nav-logo-divider"></div>
+    <a href="https://williampennfoundation.org/program/environment-and-public-space"
+       target="_blank" rel="noopener">
+      <img src="project_information/logos/WPFLogo_stacked_spectral.png"
+           alt="William Penn Foundation" class="footer-logo-img"/>
+    </a>
+  </div>
+  <div class="footer-copy">
+    Community-Driven Air Quality, Heat &amp; Humidity Mitigation in Philadelphia<br/>
+    Drexel University · Dept. of Civil, Architectural &amp; Environmental Engineering<br/>
+    Questions? <a href="mailto:cf889@drexel.edu">Contact the research team</a>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    const token  = params.get('token');
+    const iframe = document.getElementById('sensor-iframe');
+    const noTok  = document.getElementById('no-token');
+
+    if (token) {
+      iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(token);
+    } else {
+      iframe.style.display = 'none';
+      noTok.style.display  = 'block';
+    }
+  })();
+</script>
+
+</body>
+</html>
