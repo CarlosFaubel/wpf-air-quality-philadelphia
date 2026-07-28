@@ -137,14 +137,23 @@ nav.bottom-nav {
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0,0,0,0.40);
+  /* wrapper shrinks to scaled iframe height */
+  position: relative;
 }
+/* Force desktop-width render so Aethair shows the graph,
+   then scale down to fit the phone screen.
+   --iw: desktop width to request  (1024px)
+   --scale: phone content width / --iw  ≈ (100vw - 1.5rem) / 1024
+   We use JS below to set --scale dynamically. */
 .iframe-card iframe {
   display: block;
-  width: 100%;
-  height: 72vh;
-  min-height: 480px;
+  width:  1024px;
+  height: 900px;
   border: none;
+  transform-origin: 0 0;
+  transform: scale(var(--iframe-scale, 0.38));
 }
+/* Card height tracks scaled iframe — set via JS on --iframe-scale */
 
 /* No-token state */
 .no-token {
@@ -584,6 +593,20 @@ footer {
 </nav>
 
 <script>
+  /* ── scale iframe to phone width ── */
+  (function () {
+    function setScale() {
+      const card = document.querySelector('.iframe-card');
+      if (!card) return;
+      const availW = card.parentElement.clientWidth - 0; /* padding already in parent */
+      const scale  = Math.min(availW / 1024, 1);
+      document.documentElement.style.setProperty('--iframe-scale', scale);
+      if (card) card.style.height = Math.round(900 * scale) + 'px';
+    }
+    setScale();
+    window.addEventListener('resize', setScale);
+  })();
+
   /* ── token → iframe ── */
   (function () {
     const params = new URLSearchParams(window.location.search);
