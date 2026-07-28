@@ -503,10 +503,7 @@ footer {
     <li><a href="#alerts">Alerts</a></li>
     <li><a href="#steps">How It Works</a></li>
   </ul>
-  <div style="display:flex;gap:0.75rem;align-items:center;">
-    <a class="nav-cta" id="live-data-btn" href="sensor.html" style="background:transparent;border:1px solid rgba(65,182,230,0.50);color:var(--accent);">Live Data</a>
-    <a class="nav-cta" href="#join">Join the Study</a>
-  </div>
+  <a class="nav-cta" href="#join">Join the Study</a>
 </nav>
 
 <!-- ── HERO ── -->
@@ -794,13 +791,5 @@ footer {
     </div>
   </div>
 </footer>
-
-<script>
-(function() {
-  var token = localStorage.getItem('sensorToken');
-  var btn = document.getElementById('live-data-btn');
-  if (btn && token) { btn.href = 'sensor.html?token=' + encodeURIComponent(token); }
-})();
-</script>
 </body>
     </html>
