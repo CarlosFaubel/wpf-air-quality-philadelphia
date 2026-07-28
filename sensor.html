@@ -26,7 +26,7 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: 'Inter', Arial, sans-serif;
-  background: var(--bg-dark);
+  background: var(--bg-dark) url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2341b6e6' fill-opacity='0.025'%3E%3Ccircle cx='40' cy='40' r='1.5'/%3E%3C/g%3E%3C/svg%3E") repeat;
   color: var(--white);
   font-size: 1rem;
   line-height: 1.6;
@@ -37,22 +37,23 @@ body {
 nav {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: rgba(4,29,56,0.95);
+  padding: 1.1rem 2rem;
+  background: rgba(4,29,56,0.92);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(65,182,230,0.12);
+  border-bottom: 1px solid rgba(65,182,230,0.10);
 }
 .nav-logos {
   display: flex; align-items: center; gap: 1rem;
 }
 .nav-logo-img {
-  height: 34px; width: auto;
+  height: 38px; width: auto;
   opacity: 0.90;
   transition: opacity 0.2s;
+  display: block;
 }
 .nav-logo-img:hover { opacity: 1; }
 .nav-logo-divider {
-  width: 1px; height: 26px;
+  width: 1px; height: 28px;
   background: rgba(255,255,255,0.20);
 }
 .nav-back {
@@ -302,26 +303,22 @@ nav {
 
 /* ── FOOTER ── */
 footer {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2.5rem 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  background: #02111f;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 3rem 2rem;
 }
-.footer-logos { display: flex; align-items: center; gap: 1.2rem; }
-.footer-logo-img { height: 32px; width: auto; opacity: 0.75; transition: opacity 0.2s; }
+.footer-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 2rem;
+}
+.footer-logos { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
+.footer-logo-link { display: inline-flex; align-items: center; text-decoration: none; }
+.footer-logo-img { height: 60px; width: auto; opacity: 0.92; transition: opacity 0.2s; }
 .footer-logo-img:hover { opacity: 1; }
-.footer-copy {
-  font-size: 0.75rem;
-  color: var(--muted);
-  line-height: 1.6;
-}
-.footer-copy a { color: var(--accent); text-decoration: none; }
-.footer-copy a:hover { text-decoration: underline; }
+.footer-info { font-size: 0.8rem; color: var(--muted); text-align: right; line-height: 1.7; }
+.footer-info a { color: var(--accent); text-decoration: none; }
+.footer-info a:hover { text-decoration: underline; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
@@ -350,13 +347,14 @@ footer {
            alt="William Penn Foundation" class="nav-logo-img"/>
     </a>
   </div>
-  <a class="nav-back" href="index.html">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.8"
-            stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    Project Info
-  </a>
+  <ul class="nav-links">
+    <li><a href="index.html#about">About</a></li>
+    <li><a href="index.html#monitor">Monitoring</a></li>
+    <li><a href="index.html#reduce">CR Box</a></li>
+    <li><a href="index.html#alerts">Alerts</a></li>
+    <li><a href="index.html#steps">How It Works</a></li>
+  </ul>
+  <a class="nav-cta" href="index.html">← Project Info</a>
 </nav>
 
 <!-- ── HERO ── -->
@@ -544,23 +542,21 @@ footer {
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div class="footer-logos">
-    <a href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/"
-       target="_blank" rel="noopener">
-      <img src="project_information/logos/school-of-engineering-primary_blue.png"
-           alt="Drexel University" class="footer-logo-img"/>
-    </a>
-    <div class="nav-logo-divider"></div>
-    <a href="https://williampennfoundation.org/program/environment-and-public-space"
-       target="_blank" rel="noopener">
-      <img src="project_information/logos/WPFLogo_stacked_spectral.png"
-           alt="William Penn Foundation" class="footer-logo-img"/>
-    </a>
-  </div>
-  <div class="footer-copy">
-    Community-Driven Air Quality, Heat &amp; Humidity Mitigation in Philadelphia<br/>
-    Drexel University · Dept. of Civil, Architectural &amp; Environmental Engineering<br/>
-    Questions? <a href="mailto:cf889@drexel.edu">Contact the research team</a>
+  <div class="footer-inner">
+    <div class="footer-logos">
+      <a class="footer-logo-link" href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/" target="_blank" rel="noopener">
+        <img src="project_information/logos/school-of-engineering-primary_blue.png" alt="Drexel University School of Engineering" class="footer-logo-img"/>
+      </a>
+      <a class="footer-logo-link" href="https://williampennfoundation.org/program/environment-and-public-space" target="_blank" rel="noopener">
+        <img src="project_information/logos/WPFLogo_stacked_spectral.png" alt="William Penn Foundation" class="footer-logo-img"/>
+      </a>
+    </div>
+    <div class="footer-info">
+      <strong style="color:var(--white)">Community-Driven Air Quality Project</strong><br/>
+      Funded by the William Penn Foundation<br/>
+      Spring 2026 – Summer 2027 · Philadelphia, PA<br/>
+      <a href="mailto:cf889@drexel.edu">Contact the research team</a>
+    </div>
   </div>
 </footer>
 
@@ -572,6 +568,7 @@ footer {
     const noTok  = document.getElementById('no-token');
 
     if (token) {
+      localStorage.setItem('sensorToken', token);
       iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(token);
     } else {
       iframe.style.display = 'none';
