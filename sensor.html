@@ -50,6 +50,7 @@ nav {
 .nav-logo-img {
   height: 38px; width: auto;
   opacity: 0.90;
+  filter: brightness(0) invert(1);
   transition: opacity 0.2s;
   display: block;
 }
@@ -313,7 +314,7 @@ footer {
 }
 .footer-logos { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
 .footer-logo-link { display: inline-flex; align-items: center; text-decoration: none; }
-.footer-logo-img { height: 60px; width: auto; opacity: 0.92; transition: opacity 0.2s; }
+.footer-logo-img { height: 60px; width: auto; opacity: 0.92; filter: brightness(0) invert(1); transition: opacity 0.2s; }
 .footer-logo-img:hover { opacity: 1; }
 .footer-info { font-size: 0.8rem; color: var(--muted); text-align: right; line-height: 1.7; }
 .footer-info a { color: var(--accent); text-decoration: none; }
