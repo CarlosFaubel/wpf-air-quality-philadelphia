@@ -4,10 +4,20 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Your Air Quality — WPF Community Study</title>
+<!-- Resource hints -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com"/>
+<link rel="preconnect" href="https://api.environet.io"/>
+<link rel="dns-prefetch" href="https://dashboard.environet.io"/>
+<!-- Fonts: non-blocking, trimmed to 4 weights actually used -->
+<link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap"
+      onload="this.rel='stylesheet'"/>
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet"/>
+</noscript>
+<!-- Chart.js loaded lazily — injected only when Report tab is first tapped -->
 <style>
 :root {
   --bg:        #07294D;
@@ -51,7 +61,7 @@ nav.top-nav {
   display: flex; align-items: center; justify-content: center;
   padding: 0 1rem;
   background: rgba(4,29,56,0.95);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(65,182,230,0.12);
 }
 .top-nav-logos {
@@ -74,7 +84,7 @@ nav.bottom-nav {
   height: var(--tab-h);
   display: flex; align-items: stretch;
   background: rgba(4,29,56,0.97);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(8px);
   border-top: 1px solid rgba(65,182,230,0.15);
 }
 .tab-btn {
@@ -944,11 +954,20 @@ footer {
     loadChart();
   });
 
-  /* Called when Report tab is first clicked */
+  /* Called when Report tab is first clicked — lazy-loads Chart.js then renders */
   function initReport() {
-    if (!reportReady) {
-      reportReady = true;
+    if (reportReady) return;
+    reportReady = true;
+    if (typeof Chart !== 'undefined') {
       loadChart();
+    } else {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+      s.onload = () => loadChart();
+      s.onerror = () => {
+        document.getElementById('chart-status').textContent = 'Could not load chart library. Check your connection.';
+      };
+      document.head.appendChild(s);
     }
   }
 
