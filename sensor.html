@@ -19,7 +19,6 @@
   --muted:     rgba(255,255,255,0.60);
   --radius-lg: 20px;
   --radius-xl: 28px;
-  /* Drexel WPF Study */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,7 +27,8 @@ html { scroll-behavior: smooth; }
 body {
   font-family: 'Inter', Arial, sans-serif;
   background-color: var(--bg-dark);
-  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2341b6e6' fill-opacity='0.025'%3E%3Ccircle cx='40' cy='40' r='1.5'/%3E%3C/g%3E%3C/svg%3E") repeat;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2341b6e6' fill-opacity='0.025'%3E%3Ccircle cx='40' cy='40' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
   color: var(--white);
   font-size: 1rem;
   line-height: 1.6;
@@ -77,6 +77,35 @@ nav {
 }
 .nav-cta:hover { opacity: 0.88; transform: translateY(-1px); }
 
+/* ── SCROLL OFFSET (accounts for sticky nav height ~72px) ── */
+[id] { scroll-margin-top: 80px; }
+
+/* ── NAV BUTTONS ── */
+.nav-btns {
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.nav-btn {
+  color: var(--white);
+  font-size: 0.82rem; font-weight: 600;
+  text-decoration: none;
+  padding: 7px 16px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.06);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.nav-btn:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.65);
+  transform: translateY(-1px);
+}
+.nav-btn:active { transform: translateY(0); }
+@media (max-width: 700px) {
+  .nav-btns { display: none; }
+}
+
 /* ── HERO ── */
 .hero {
   padding: 3rem 1.5rem 2rem;
@@ -117,7 +146,8 @@ nav {
 /* ── IFRAME SECTION ── */
 .dashboard-section {
   padding: 0 1.5rem 3rem;
-  margin: 0 auto;
+  /* no max-width — let iframe span full page width so Aethair renders its
+     side-by-side layout (AQ circle + chart + metrics) instead of stacked */
 }
 .iframe-card {
   background: var(--bg-card);
@@ -313,7 +343,10 @@ footer {
   justify-content: space-between; flex-wrap: wrap; gap: 2rem;
 }
 .footer-logos { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
-.footer-logo-link { display: inline-flex; align-items: center; text-decoration: none; }
+.footer-logo-link {
+  display: inline-flex; align-items: center;
+  text-decoration: none;
+}
 .footer-logo-img { height: 60px; width: auto; opacity: 0.92; filter: brightness(0) invert(1); transition: opacity 0.2s; }
 .footer-logo-img:hover { opacity: 1; }
 .footer-info { font-size: 0.8rem; color: var(--muted); text-align: right; line-height: 1.7; }
@@ -323,7 +356,7 @@ footer {
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   .hero { padding: 2rem 1.2rem 1.5rem; }
-  .dashboard-section { padding: 0 0.75rem 2.5rem; }
+  .dashboard-section { padding: 0 0.5rem 2.5rem; }
   .iframe-card iframe { height: 860px; }
   .section { padding: 2.5rem 1.2rem; }
   footer { padding: 2rem 1.2rem; flex-direction: column; align-items: flex-start; }
@@ -347,7 +380,12 @@ footer {
            alt="William Penn Foundation" class="nav-logo-img"/>
     </a>
   </div>
-
+  <nav class="nav-btns">
+    <a class="nav-btn" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Live Data</a>
+    <a class="nav-btn" href="#parameters">Parameters</a>
+    <a class="nav-btn" href="#cr-box">Corsi-Rosenthal Box</a>
+    <a class="nav-btn" href="#about">About</a>
+  </nav>
 </nav>
 
 <!-- ── HERO ── -->
@@ -358,7 +396,7 @@ footer {
 </div>
 
 <!-- ── DASHBOARD IFRAME ── -->
-<div class="dashboard-section">
+<div class="dashboard-section" id="live-data">
   <div class="iframe-card">
     <iframe id="sensor-iframe"
             src=""
@@ -379,7 +417,7 @@ footer {
 </div>
 
 <!-- ── WHAT YOU'RE LOOKING AT ── -->
-<div class="section">
+<div class="section" id="parameters">
   <p class="section-label">Air Quality Metrics</p>
   <h2>What you're <em>looking at</em></h2>
   <p class="section-intro">
@@ -400,10 +438,10 @@ footer {
         </svg>
       </div>
       <h3>PM2.5</h3>
-      <div class="unit">µg/m³ · Fine Particles</div>
+      <div class="unit">&mu;g/m<sup>3</sup> · Fine Particles</div>
       <p>Tiny particles smaller than 2.5 micrometers that can travel deep into your lungs.
          Sources include smoke, dust, and vehicle exhaust.
-         <strong style="color:var(--white)">Good: below 12 µg/m³.</strong></p>
+         <strong style="color:var(--white)">Good: below 12 &mu;g/m<sup>3</sup>.</strong></p>
     </div>
 
     <div class="metric-card">
@@ -489,12 +527,29 @@ footer {
         </svg>
       </div>
       <h3>Formaldehyde</h3>
-      <div class="unit">mg/m³ · Common Indoor Pollutant</div>
+      <div class="unit">&mu;g/m<sup>3</sup> · Common Indoor Pollutant</div>
       <p>Found in building materials, wood products, and some fabrics.
          Even low levels can irritate eyes, nose, and throat.
          <strong style="color:var(--white)">Lower is always better.</strong></p>
     </div>
 
+  </div>
+</div>
+
+<!-- ── CORSI-ROSENTHAL BOX ── -->
+<div class="section" id="cr-box">
+  <p class="section-label">Air Purification</p>
+  <h2>Your <em>Corsi-Rosenthal Box</em></h2>
+  <p class="section-intro">
+    The Corsi-Rosenthal Box is a low-cost, high-efficiency DIY air purifier built from box fans and MERV-13 filters.
+    It was designed to reduce indoor PM2.5 concentrations — the same particles your sensor monitors — by up to 70%.
+    More information about how to use and maintain your unit is coming soon.
+  </p>
+  <div style="display:flex;align-items:center;justify-content:center;margin-top:2rem;">
+    <img src="project_information/CR_box.png"
+         alt="Corsi-Rosenthal Box air purifier"
+         style="max-width:380px;width:100%;border-radius:var(--radius-xl);
+                box-shadow:0 8px 40px rgba(0,0,0,0.45);object-fit:cover;"/>
   </div>
 </div>
 
@@ -533,14 +588,18 @@ footer {
 </div>
 
 <!-- ── FOOTER ── -->
-<footer>
+<footer id="about">
   <div class="footer-inner">
     <div class="footer-logos">
-      <a class="footer-logo-link" href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/" target="_blank" rel="noopener">
-        <img src="project_information/logos/school-of-engineering-primary_blue.png" alt="Drexel University School of Engineering" class="footer-logo-img"/>
+      <a class="footer-logo-link" href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/"
+         target="_blank" rel="noopener" title="Drexel University School of Engineering">
+        <img src="project_information/logos/school-of-engineering-primary_blue.png"
+             alt="Drexel University School of Engineering" class="footer-logo-img"/>
       </a>
-      <a class="footer-logo-link" href="https://williampennfoundation.org/program/environment-and-public-space" target="_blank" rel="noopener">
-        <img src="project_information/logos/WPFLogo_stacked_spectral.png" alt="William Penn Foundation" class="footer-logo-img"/>
+      <a class="footer-logo-link" href="https://williampennfoundation.org/program/environment-and-public-space"
+         target="_blank" rel="noopener" title="William Penn Foundation">
+        <img src="project_information/logos/WPFLogo_stacked_spectral.png"
+             alt="William Penn Foundation" class="footer-logo-img"/>
       </a>
     </div>
     <div class="footer-info">
@@ -560,7 +619,6 @@ footer {
     const noTok  = document.getElementById('no-token');
 
     if (token) {
-      localStorage.setItem('sensorToken', token);
       iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(token);
     } else {
       iframe.style.display = 'none';
