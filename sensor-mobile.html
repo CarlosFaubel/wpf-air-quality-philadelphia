@@ -540,20 +540,6 @@ footer {
   </div>
 </div>
 
-<!-- ── CORSI-ROSENTHAL BOX ── -->
-<div class="section" id="cr-box">
-  <p class="section-label">Air Purification</p>
-  <h2>Your <em>Corsi-Rosenthal Box</em></h2>
-  <p class="section-intro">
-    The Corsi-Rosenthal Box is a low-cost, high-efficiency DIY air purifier built from
-    box fans and MERV-13 filters. It can reduce indoor PM<sub>2.5</sub> concentrations by up to 70%.
-    More information about how to use and maintain your unit is coming soon.
-  </p>
-  <img src="project_information/CR_box.png"
-       alt="Corsi-Rosenthal Box air purifier"
-       class="cr-img"/>
-</div>
-
 <!-- ── WEEKLY REPORT ── -->
 <div class="section" id="report">
   <p class="section-label">Historical Data</p>
@@ -586,6 +572,20 @@ footer {
       <canvas id="aq-chart"></canvas>
     </div>
   </div>
+</div>
+
+<!-- ── CORSI-ROSENTHAL BOX ── -->
+<div class="section" id="cr-box">
+  <p class="section-label">Air Purification</p>
+  <h2>Your <em>Corsi-Rosenthal Box</em></h2>
+  <p class="section-intro">
+    The Corsi-Rosenthal Box is a low-cost, high-efficiency DIY air purifier built from
+    box fans and MERV-13 filters. It can reduce indoor PM<sub>2.5</sub> concentrations by up to 70%.
+    More information about how to use and maintain your unit is coming soon.
+  </p>
+  <img src="project_information/CR_box.png"
+       alt="Corsi-Rosenthal Box air purifier"
+       class="cr-img"/>
 </div>
 
 <!-- ── ABOUT THE STUDY ── -->
@@ -659,6 +659,15 @@ footer {
     </svg>
     Parameters
   </a>
+  <a class="tab-btn" id="tab-report" href="#report"
+     onclick="setActive('tab-report');initReport()">
+    <!-- line chart icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="3,17 8,11 13,14 21,6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="3" y1="21" x2="21" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.4" stroke-linecap="round"/>
+    </svg>
+    Report
+  </a>
   <a class="tab-btn" id="tab-cr" href="#cr-box"
      onclick="setActive('tab-cr')">
     <!-- fan / filter icon -->
@@ -669,15 +678,6 @@ footer {
       <line x1="17" y1="3" x2="17" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
     </svg>
     CR Box
-  </a>
-  <a class="tab-btn" id="tab-report" href="#report"
-     onclick="setActive('tab-report');initReport()">
-    <!-- line chart icon -->
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polyline points="3,17 8,11 13,14 21,6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <line x1="3" y1="21" x2="21" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.4" stroke-linecap="round"/>
-    </svg>
-    Report
   </a>
   <a class="tab-btn" id="tab-about" href="#about"
      onclick="setActive('tab-about')">
