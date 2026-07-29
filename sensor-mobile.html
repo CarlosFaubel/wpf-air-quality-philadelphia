@@ -129,21 +129,30 @@ nav.bottom-nav {
 
 /* ── IFRAME SECTION ── */
 .dashboard-section {
-  padding: 0 0.75rem 2rem;
+  padding: 0 0 2rem;
+}
+.iframe-scroll-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 0 1.2rem 0.5rem;
+  letter-spacing: 0.03em;
 }
 .iframe-card {
   background: var(--bg-card);
-  border: 1px solid rgba(65,182,230,0.15);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
+  border-top: 1px solid rgba(65,182,230,0.15);
+  border-bottom: 1px solid rgba(65,182,230,0.15);
+  overflow-x: auto;   /* horizontal scroll so full dashboard is reachable */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 4px 24px rgba(0,0,0,0.40);
 }
 .iframe-card iframe {
   display: block;
-  width: 100%;
-  height: 72vh;
-  min-height: 480px;
+  width:  1024px;     /* force desktop viewport so graph renders */
+  height: 780px;
   border: none;
+  flex-shrink: 0;
 }
 
 /* No-token state */
@@ -341,6 +350,7 @@ footer {
 
 <!-- ── DASHBOARD IFRAME ── -->
 <div class="dashboard-section" id="live-data">
+  <p class="iframe-scroll-hint">← Scroll sideways to see full dashboard →</p>
   <div class="iframe-card">
     <iframe id="sensor-iframe"
             src=""
@@ -380,9 +390,9 @@ footer {
         </svg>
       </div>
       <div class="metric-body">
-        <h3>PM2.5</h3>
-        <div class="unit"><span style="text-transform:none">&mu;</span>g/m<sup>3</sup> · Fine Particles</div>
-        <p>Tiny particles that travel deep into your lungs. Sources include smoke, dust, and vehicle exhaust. <strong style="color:var(--white)">Good: below 12 μg/m³.</strong></p>
+        <h3>PM₂.₅</h3>
+        <div class="unit">µg/m³ · Fine Particles</div>
+        <p>Tiny particles that travel deep into your lungs. Sources include smoke, dust, and vehicle exhaust. <strong style="color:var(--white)">Good: below 12 µg/m³.</strong></p>
       </div>
     </div>
 
@@ -466,7 +476,7 @@ footer {
       </div>
       <div class="metric-body">
         <h3>Formaldehyde</h3>
-        <div class="unit"><span style="text-transform:none">&mu;</span>g/m<sup>3</sup> · Common Indoor Pollutant</div>
+        <div class="unit">mg/m³ · Common Indoor Pollutant</div>
         <p>Found in building materials, wood products, and some fabrics. Can irritate eyes, nose, and throat. <strong style="color:var(--white)">Lower is always better.</strong></p>
       </div>
     </div>
@@ -480,8 +490,7 @@ footer {
   <h2>Your <em>Corsi-Rosenthal Box</em></h2>
   <p class="section-intro">
     The Corsi-Rosenthal Box is a low-cost, high-efficiency DIY air purifier built from
-    box fans and MERV-13 filters. It can reduce indoor PM2.5 concentrations — the same
-    particles your sensor monitors — by up to 70%.
+    box fans and MERV-13 filters. It can reduce indoor PM<sub>2.5</sub> concentrations by up to 70%.
     More information about how to use and maintain your unit is coming soon.
   </p>
   <img src="project_information/CR_box.png"
@@ -497,7 +506,7 @@ footer {
     Environmental Engineering, funded by the William Penn Foundation.
     We are working with communities in four Philadelphia neighborhoods —
     Point Breeze, Grays Ferry, Haddington, and Kingsessing — to monitor indoor
-    air quality and reduce PM2.5 exposure.
+    air quality and reduce PM<sub>2.5</sub> exposure.
   </p>
   <p>Your participation directly contributes to research that will help improve air quality across Philadelphia's environmental justice communities.</p>
   <div class="stats-row">
@@ -510,7 +519,7 @@ footer {
       <div class="lbl">Neighborhoods</div>
     </div>
     <div class="stat">
-      <div class="val">18 mo.</div>
+      <div class="val">12 mo.</div>
       <div class="lbl">Monitoring campaign</div>
     </div>
   </div>
