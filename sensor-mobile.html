@@ -129,31 +129,31 @@ nav.bottom-nav {
 
 /* ── IFRAME SECTION ── */
 .dashboard-section {
-  padding: 0 0.75rem 2rem;
+  padding: 0 0 2rem;
+}
+.iframe-scroll-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 0 1.2rem 0.5rem;
+  letter-spacing: 0.03em;
 }
 .iframe-card {
   background: var(--bg-card);
-  border: 1px solid rgba(65,182,230,0.15);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
+  border-top: 1px solid rgba(65,182,230,0.15);
+  border-bottom: 1px solid rgba(65,182,230,0.15);
+  overflow-x: auto;   /* horizontal scroll so full dashboard is reachable */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   box-shadow: 0 4px 24px rgba(0,0,0,0.40);
-  /* wrapper shrinks to scaled iframe height */
-  position: relative;
 }
-/* Force desktop-width render so Aethair shows the graph,
-   then scale down to fit the phone screen.
-   --iw: desktop width to request  (1024px)
-   --scale: phone content width / --iw  ≈ (100vw - 1.5rem) / 1024
-   We use JS below to set --scale dynamically. */
 .iframe-card iframe {
   display: block;
-  width:  1024px;
-  height: 900px;
+  width:  1024px;     /* force desktop viewport so graph renders */
+  height: 780px;
   border: none;
-  transform-origin: 0 0;
-  transform: scale(var(--iframe-scale, 0.38));
+  flex-shrink: 0;
 }
-/* Card height tracks scaled iframe — set via JS on --iframe-scale */
 
 /* No-token state */
 .no-token {
@@ -350,6 +350,7 @@ footer {
 
 <!-- ── DASHBOARD IFRAME ── -->
 <div class="dashboard-section" id="live-data">
+  <p class="iframe-scroll-hint">← Scroll sideways to see full dashboard →</p>
   <div class="iframe-card">
     <iframe id="sensor-iframe"
             src=""
@@ -593,19 +594,6 @@ footer {
 </nav>
 
 <script>
-  /* ── scale iframe to phone width ── */
-  (function () {
-    function setScale() {
-      const card = document.querySelector('.iframe-card');
-      if (!card) return;
-      const availW = card.parentElement.clientWidth - 0; /* padding already in parent */
-      const scale  = Math.min(availW / 1024, 1);
-      document.documentElement.style.setProperty('--iframe-scale', scale);
-      if (card) card.style.height = Math.round(900 * scale) + 'px';
-    }
-    setScale();
-    window.addEventListener('resize', setScale);
-  })();
 
   /* ── token → iframe ── */
   (function () {
