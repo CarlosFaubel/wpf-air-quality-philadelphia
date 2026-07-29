@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
   --bg:        #07294D;
@@ -311,6 +312,61 @@ footer {
   body { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
   .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
 }
+
+/* ── REPORT SECTION ── */
+.report-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.4rem;
+}
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.pill-group-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+.pill-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.pill-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-dark);
+}
+.chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid rgba(65,182,230,0.12);
+  border-radius: var(--radius-lg);
+  padding: 1rem 0.75rem 0.75rem;
+  position: relative;
+}
+.chart-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+.chart-canvas-container {
+  position: relative;
+  height: 220px;
+}
 </style>
 </head>
 <body>
@@ -515,6 +571,40 @@ footer {
   </div>
 </div>
 
+<!-- ── WEEKLY REPORT ── -->
+<div class="section" id="report">
+  <p class="section-label">Historical Data</p>
+  <h2>Your <em>Air Quality</em> Report</h2>
+  <p class="section-intro">Select a parameter and view to explore your sensor's historical data.</p>
+
+  <div class="report-controls">
+    <div>
+      <div class="pill-group-label">Parameter</div>
+      <div class="pill-group" id="param-group">
+        <button class="pill-btn active" data-param="PM2.5">PM2.5</button>
+        <button class="pill-btn" data-param="CO₂">CO₂</button>
+        <button class="pill-btn" data-param="Temperature">Temp</button>
+        <button class="pill-btn" data-param="Humidity">Humidity</button>
+        <button class="pill-btn" data-param="CH₂O">CH₂O</button>
+      </div>
+    </div>
+    <div>
+      <div class="pill-group-label">View</div>
+      <div class="pill-group" id="view-group">
+        <button class="pill-btn active" data-view="hourly">Hourly avg · 7 days</button>
+        <button class="pill-btn" data-view="raw">Raw · Last 24 h</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-status" id="chart-status">Loading data…</div>
+    <div class="chart-canvas-container" id="chart-container" style="display:none">
+      <canvas id="aq-chart"></canvas>
+    </div>
+  </div>
+</div>
+
 <!-- ── FOOTER ── -->
 <footer id="about">
   <div class="footer-logos">
@@ -580,18 +670,26 @@ footer {
     </svg>
     About
   </a>
+  <a class="tab-btn" id="tab-report" href="#report"
+     onclick="setActive('tab-report');initReport()">
+    <!-- line chart icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="3,17 8,11 13,14 21,6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="3" y1="21" x2="21" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.4" stroke-linecap="round"/>
+    </svg>
+    Report
+  </a>
 </nav>
 
 <script>
 
   /* ── token → iframe ── */
+  const TOKEN = new URLSearchParams(window.location.search).get('token');
   (function () {
-    const params = new URLSearchParams(window.location.search);
-    const token  = params.get('token');
     const iframe = document.getElementById('sensor-iframe');
     const noTok  = document.getElementById('no-token');
-    if (token) {
-      iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(token);
+    if (TOKEN) {
+      iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(TOKEN);
     } else {
       iframe.style.display = 'none';
       noTok.style.display  = 'block';
@@ -611,6 +709,7 @@ footer {
     { id: 'parameters',  tab: 'tab-params' },
     { id: 'cr-box',      tab: 'tab-cr'     },
     { id: 'about',       tab: 'tab-about'  },
+    { id: 'report',      tab: 'tab-report' },
   ];
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => {
@@ -619,17 +718,240 @@ footer {
         if (match) setActive(match.tab);
       }
     });
-  }, { threshold: 0.4 });
+  }, { threshold: 0.3 });
   sections.forEach(s => {
     const el = document.getElementById(s.id);
     if (el) observer.observe(el);
   });
-  /* hero (above live-data) → Live Data tab */
   const heroObserver = new IntersectionObserver(entries => {
     if (entries[0].isIntersecting) setActive('tab-live');
   }, { threshold: 0.5 });
   const hero = document.querySelector('.hero');
   if (hero) heroObserver.observe(hero);
+
+  /* ════════════════════════════════════════════
+     REPORT / CHART LOGIC
+  ════════════════════════════════════════════ */
+
+  const API = 'https://api.environet.io/v2/search/data_points';
+  let dataPointsCache = null;   // list of available data points for this sensor
+  let chartInstance   = null;
+  let currentParam    = 'PM2.5';
+  let currentView     = 'hourly';
+  let reportReady     = false;
+
+  /* Fetch the list of data points (paths) for this token */
+  async function getDataPoints() {
+    if (dataPointsCache) return dataPointsCache;
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: TOKEN})
+    });
+    dataPointsCache = await res.json();
+    return dataPointsCache;
+  }
+
+  /* Find path for a given parameter name */
+  async function getPath(paramName) {
+    const points = await getDataPoints();
+    // Special handling: Temperature → prefer °C version
+    if (paramName === 'Temperature') {
+      const match = points.find(p => p.name === 'Temperature' && p.unit === '°C');
+      return match ? match.path : null;
+    }
+    const match = points.find(p => p.name === paramName);
+    return match ? match.path : null;
+  }
+
+  /* Fetch measurements for a given path */
+  async function getMeasurements(path, fromMs) {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: TOKEN, path, from: fromMs})
+    });
+    const data = await res.json();
+    const entry = Array.isArray(data) ? data.find(d => d.path === path) : data;
+    return entry ? (entry.measurements || []) : [];
+  }
+
+  /* Aggregate raw [ts, val] pairs into hourly averages */
+  function toHourly(measurements) {
+    const buckets = {};
+    measurements.forEach(([ts, val]) => {
+      if (val === null || val === undefined) return;
+      const h = Math.floor(ts / 3600000) * 3600000;
+      if (!buckets[h]) buckets[h] = {sum: 0, count: 0};
+      buckets[h].sum   += val;
+      buckets[h].count += 1;
+    });
+    return Object.entries(buckets)
+      .sort((a, b) => a[0] - b[0])
+      .map(([h, {sum, count}]) => ({x: +h, y: +(sum / count).toFixed(2)}));
+  }
+
+  /* Format timestamp for chart labels */
+  function fmtHourly(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' ' +
+           d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
+  }
+  function fmtRaw(ts) {
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
+  }
+
+  /* Param → units label */
+  const UNITS = {
+    'PM2.5': 'µg/m³', 'CO₂': 'ppm', 'Temperature': '°C',
+    'Humidity': '%', 'CH₂O': 'mg/m³'
+  };
+
+  /* Render or update the Chart.js chart */
+  function renderChart(points, paramName, view) {
+    const status    = document.getElementById('chart-status');
+    const container = document.getElementById('chart-container');
+
+    if (!points.length) {
+      status.textContent = 'No data available for this parameter.';
+      status.style.display = 'block';
+      container.style.display = 'none';
+      return;
+    }
+
+    status.style.display = 'none';
+    container.style.display = 'block';
+
+    const labels = points.map(p => view === 'hourly' ? fmtHourly(p.x) : fmtRaw(p.x));
+    const values = points.map(p => p.y);
+
+    const accent  = '#41b6e6';
+    const accent2 = '#6ee7ca';
+
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(document.getElementById('aq-chart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: paramName + ' (' + (UNITS[paramName] || '') + ')',
+          data: values,
+          borderColor: accent,
+          backgroundColor: 'rgba(65,182,230,0.10)',
+          borderWidth: 1.8,
+          pointRadius: view === 'raw' ? 0 : 2,
+          pointHoverRadius: 4,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(4,29,56,0.95)',
+            borderColor: 'rgba(65,182,230,0.25)',
+            borderWidth: 1,
+            titleColor: accent2,
+            bodyColor: '#fff',
+            padding: 10
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: 'rgba(255,255,255,0.45)',
+              font: { size: 9, family: 'Inter' },
+              maxTicksLimit: view === 'hourly' ? 7 : 8,
+              maxRotation: 30
+            },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          },
+          y: {
+            ticks: {
+              color: 'rgba(255,255,255,0.55)',
+              font: { size: 10, family: 'Inter' }
+            },
+            grid: { color: 'rgba(255,255,255,0.06)' }
+          }
+        }
+      }
+    });
+  }
+
+  /* Main fetch + render function */
+  async function loadChart() {
+    if (!TOKEN) {
+      document.getElementById('chart-status').textContent = 'No sensor token — scan the QR code to load your data.';
+      return;
+    }
+    document.getElementById('chart-status').textContent = 'Loading data…';
+    document.getElementById('chart-status').style.display = 'block';
+    document.getElementById('chart-container').style.display = 'none';
+
+    try {
+      const path = await getPath(currentParam);
+      if (!path) {
+        document.getElementById('chart-status').textContent = 'Parameter not available for this sensor.';
+        return;
+      }
+
+      const now     = Date.now();
+      const fromMs  = currentView === 'hourly'
+                      ? now - 7  * 24 * 3600 * 1000   // 7 days
+                      : now - 1  * 24 * 3600 * 1000;  // 24 hours
+
+      const raw = await getMeasurements(path, fromMs);
+
+      let points;
+      if (currentView === 'hourly') {
+        points = toHourly(raw);
+      } else {
+        // Raw: use every reading, map to {x, y}
+        points = raw.map(([ts, val]) => ({x: ts, y: val}));
+      }
+
+      renderChart(points, currentParam, currentView);
+    } catch (err) {
+      document.getElementById('chart-status').textContent = 'Could not load data. Please try again.';
+      document.getElementById('chart-status').style.display = 'block';
+      document.getElementById('chart-container').style.display = 'none';
+      console.error(err);
+    }
+  }
+
+  /* Pill button interactions */
+  document.getElementById('param-group').addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    document.querySelectorAll('#param-group .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentParam = btn.dataset.param;
+    loadChart();
+  });
+
+  document.getElementById('view-group').addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    document.querySelectorAll('#view-group .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+    loadChart();
+  });
+
+  /* Called when Report tab is first clicked */
+  function initReport() {
+    if (!reportReady) {
+      reportReady = true;
+      loadChart();
+    }
+  }
+
 </script>
 
 </body>
