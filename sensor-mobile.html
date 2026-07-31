@@ -479,8 +479,8 @@ footer {
       </div>
       <div class="metric-body">
         <h3>Temperature</h3>
-        <div class="unit">°C · Thermal Comfort</div>
-        <p>Extreme heat and cold both affect health — especially for children and older adults. <strong style="color:var(--white)">Comfort range: 18–26 °C.</strong></p>
+        <div class="unit">°F · Thermal Comfort</div>
+        <p>Extreme heat and cold both affect health — especially for children and older adults. <strong style="color:var(--white)">Comfort range: 64–79 °F.</strong></p>
       </div>
     </div>
 
@@ -519,24 +519,6 @@ footer {
       </div>
     </div>
 
-    <div class="metric-card">
-      <div class="metric-icon">
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 2 L8 10 L4 18 Q3.5 19.5 5 19.5 L17 19.5 Q18.5 19.5 18 18 L14 10 L14 2"
-                stroke="#41b6e6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
-                fill="#41b6e6" fill-opacity="0.10"/>
-          <line x1="7" y1="2" x2="15" y2="2" stroke="#41b6e6" stroke-width="1.6" stroke-linecap="round"/>
-          <circle cx="8"  cy="15.5" r="1.2" fill="#6ee7ca" opacity="0.7"/>
-          <circle cx="13" cy="14"   r="0.9" fill="#6ee7ca" opacity="0.5"/>
-        </svg>
-      </div>
-      <div class="metric-body">
-        <h3>Formaldehyde</h3>
-        <div class="unit"><span style="text-transform:none">µ</span>g/m³ · Common Indoor Pollutant</div>
-        <p>Found in building materials, wood products, and some fabrics. Can irritate eyes, nose, and throat. <strong style="color:var(--white)">Lower is always better.</strong></p>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -550,11 +532,10 @@ footer {
     <div>
       <div class="pill-group-label">Parameter</div>
       <div class="pill-group" id="param-group">
-        <button class="pill-btn active" data-param="PM2.5">PM2.5</button>
-        <button class="pill-btn" data-param="CO₂">CO₂</button>
-        <button class="pill-btn" data-param="Temperature">Temp</button>
+        <button class="pill-btn active" data-param="Temperature">Temp</button>
         <button class="pill-btn" data-param="Humidity">Humidity</button>
-        <button class="pill-btn" data-param="CH₂O">CH₂O</button>
+        <button class="pill-btn" data-param="PM2.5">PM<sub>2.5</sub></button>
+        <button class="pill-btn" data-param="CO₂">CO₂</button>
       </div>
     </div>
     <div>
@@ -746,7 +727,7 @@ footer {
   const API = 'https://api.environet.io/v2/search/data_points';
   let dataPointsCache = null;   // list of available data points for this sensor
   let chartInstance   = null;
-  let currentParam    = 'PM2.5';
+  let currentParam    = 'Temperature';
   let currentView     = 'hourly';
   let reportReady     = false;
 
@@ -814,8 +795,8 @@ footer {
 
   /* Param → units label */
   const UNITS = {
-    'PM2.5': 'µg/m³', 'CO₂': 'ppm', 'Temperature': '°C',
-    'Humidity': '%', 'CH₂O': 'mg/m³'
+    'PM2.5': 'µg/m³', 'CO₂': 'ppm', 'Temperature': '°F',
+    'Humidity': '%'
   };
 
   /* Render or update the Chart.js chart */
@@ -916,7 +897,14 @@ footer {
                       ? now - 7  * 24 * 3600 * 1000   // 7 days
                       : now - 1  * 24 * 3600 * 1000;  // 24 hours
 
-      const raw = await getMeasurements(path, fromMs);
+      let raw = await getMeasurements(path, fromMs);
+
+      // Convert Temperature from °C (API) to °F for display
+      if (currentParam === 'Temperature') {
+        raw = raw.map(([ts, val]) =>
+          [ts, val !== null && val !== undefined ? +(val * 9/5 + 32).toFixed(2) : val]
+        );
+      }
 
       let points;
       if (currentView === 'hourly') {
