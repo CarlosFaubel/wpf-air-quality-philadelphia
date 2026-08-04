@@ -541,8 +541,8 @@ footer {
     <div>
       <div class="pill-group-label">View</div>
       <div class="pill-group" id="view-group">
-        <button class="pill-btn active" data-view="hourly">Hourly avg · 7 days</button>
-        <button class="pill-btn" data-view="raw">Raw · Last 24 h</button>
+        <button class="pill-btn active" data-view="raw">Last 24 h</button>
+        <button class="pill-btn" data-view="hourly">Hourly avg. (past 7 days)</button>
       </div>
     </div>
   </div>
@@ -730,7 +730,7 @@ footer {
   let dataPointsCache = null;   // list of available data points for this sensor
   let chartInstance   = null;
   let currentParam    = 'Temperature';
-  let currentView     = 'hourly';
+  let currentView     = 'raw';
   let reportReady     = false;
 
   /* Fetch the list of data points (paths) for this token */
@@ -866,6 +866,12 @@ footer {
             grid: { color: 'rgba(255,255,255,0.05)' }
           },
           y: {
+            title: {
+              display: true,
+              text: UNITS[paramName] || '',
+              color: 'rgba(255,255,255,0.45)',
+              font: { size: 10, family: 'Inter' }
+            },
             ticks: {
               color: 'rgba(255,255,255,0.55)',
               font: { size: 10, family: 'Inter' }
