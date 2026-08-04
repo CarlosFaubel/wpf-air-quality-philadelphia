@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Your Air Quality — WPF Community Study</title>
+<!-- Resource hints -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com"/>
+<link rel="preconnect" href="https://api.environet.io"/>
+<link rel="dns-prefetch" href="https://dashboard.environet.io"/>
+<!-- Fonts: non-blocking, trimmed to 4 weights actually used -->
+<link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap"
+      onload="this.rel='stylesheet'"/>
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet"/>
+</noscript>
+<!-- Chart.js loaded lazily — injected only when Report tab is first tapped -->
+<style>
+:root {
+  --bg:        #07294D;
+  --bg-dark:   #041d38;
+  --bg-card:   #0d3a63;
+  --bg-card2:  #0a3058;
+  --accent:    #41b6e6;
+  --accent2:   #6ee7ca;
+  --white:     #ffffff;
+  --muted:     rgba(255,255,255,0.60);
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --nav-h:     60px;   /* top nav height */
+  --tab-h:     64px;   /* bottom tab bar height */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background-color: var(--bg-dark);
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2341b6e6' fill-opacity='0.025'%3E%3Ccircle cx='40' cy='40' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  color: var(--white);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* leave room for fixed top nav + bottom tab bar */
+  padding-top: var(--nav-h);
+  padding-bottom: var(--tab-h);
+}
+
+/* scroll offset: top nav + a little breathing room */
+[id] { scroll-margin-top: calc(var(--nav-h) + 12px); }
+
+/* ── TOP NAV ── */
+nav.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: var(--nav-h);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 1rem;
+  background: rgba(4,29,56,0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(65,182,230,0.12);
+}
+.top-nav-logos {
+  display: flex; align-items: center; gap: 0.9rem;
+}
+.top-nav-logo-img {
+  height: 36px; width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.88;
+  display: block;
+}
+.top-nav-divider {
+  width: 1px; height: 22px;
+  background: rgba(255,255,255,0.20);
+}
+
+/* ── BOTTOM TAB BAR ── */
+nav.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  height: var(--tab-h);
+  display: flex; align-items: stretch;
+  background: rgba(4,29,56,0.97);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(65,182,230,0.15);
+}
+.tab-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  color: rgba(255,255,255,0.50);
+  font-size: 0.62rem; font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none; background: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s, background 0.15s;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tab-btn svg { flex-shrink: 0; }
+.tab-btn:active,
+.tab-btn.active {
+  color: var(--accent);
+  background: rgba(65,182,230,0.07);
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 1.8rem 1.2rem 1.2rem;
+  text-align: center;
+}
+.hero-badge {
+  display: inline-block;
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent2);
+  background: rgba(110,231,202,0.10);
+  border: 1px solid rgba(110,231,202,0.25);
+  border-radius: 100px;
+  padding: 0.28rem 0.8rem;
+  margin-bottom: 0.9rem;
+}
+.hero h1 {
+  font-size: 1.9rem;
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.6rem;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p {
+  font-size: 0.88rem; font-weight: 400;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+/* ── IFRAME SECTION ── */
+.dashboard-section {
+  padding: 0 0 2rem;
+}
+.iframe-card {
+  background: var(--bg-card);
+  border-top: 1px solid rgba(65,182,230,0.15);
+  border-bottom: 1px solid rgba(65,182,230,0.15);
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.40);
+}
+.iframe-card iframe {
+  display: block;
+  width: 100%;
+  height: 1350px;
+  border: none;
+}
+
+/* No-token state */
+.no-token {
+  display: none;
+  text-align: center;
+  padding: 3rem 1.2rem;
+  color: var(--muted);
+}
+.no-token svg { margin-bottom: 1rem; opacity: 0.4; }
+.no-token h3 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 0.5rem; }
+.no-token p { font-size: 0.85rem; }
+
+/* ── SECTION COMMON ── */
+.section {
+  padding: 2.2rem 1.2rem;
+}
+.section-label {
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.section h2 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+}
+.section h2 em { font-style: normal; color: var(--accent); }
+.section-intro {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+/* ── METRICS GRID ── single column on mobile */
+.metrics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(65,182,230,0.12);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.1rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+.metric-icon {
+  width: 2.4rem; height: 2.4rem;
+  flex-shrink: 0;
+  background: rgba(65,182,230,0.12);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.metric-body { flex: 1; min-width: 0; }
+.metric-card h3 {
+  font-size: 0.9rem; font-weight: 700;
+  margin-bottom: 0.1rem;
+  color: var(--white);
+}
+.metric-card .unit {
+  font-size: 0.65rem; font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.metric-card p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── CR BOX IMAGE ── */
+.cr-img {
+  width: 100%;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 6px 32px rgba(0,0,0,0.45);
+  display: block;
+  margin-top: 1.4rem;
+  object-fit: cover;
+}
+
+/* ── ABOUT STRIP ── */
+.about-strip {
+  background: var(--bg-card2);
+  border-top: 1px solid rgba(65,182,230,0.10);
+  border-bottom: 1px solid rgba(65,182,230,0.10);
+  padding: 2rem 1.2rem;
+}
+.about-strip h2 {
+  font-size: 1.35rem; font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+.about-strip h2 em { font-style: normal; color: var(--accent); }
+.about-strip p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+}
+.stats-row {
+  display: flex;
+  gap: 0;
+  margin-top: 1.4rem;
+  border: 1px solid rgba(65,182,230,0.12);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.stat {
+  flex: 1;
+  padding: 0.9rem 0.5rem;
+  text-align: center;
+  background: var(--bg-card);
+  border-right: 1px solid rgba(65,182,230,0.10);
+}
+.stat:last-child { border-right: none; }
+.stat .val {
+  font-size: 1.3rem; font-weight: 900;
+  color: var(--accent2);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.stat .lbl {
+  font-size: 0.62rem; font-weight: 500;
+  color: var(--muted);
+  margin-top: 0.2rem;
+  line-height: 1.35;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: #02111f;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 2rem 1.2rem;
+  text-align: center;
+}
+.footer-logos {
+  display: flex; gap: 1.5rem; align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+}
+.footer-logo-img {
+  height: 44px; width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.88;
+}
+.footer-info {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.75;
+}
+.footer-info a { color: var(--accent); text-decoration: none; font-size: 1rem; font-weight: 600; }
+.footer-info a:hover { text-decoration: underline; }
+
+/* safe area for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body { padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
+  .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--tab-h) + env(safe-area-inset-bottom)); }
+}
+
+/* ── REPORT SECTION ── */
+.report-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.4rem;
+}
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.pill-group-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+.pill-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 13px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.pill-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-dark);
+}
+.chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid rgba(65,182,230,0.12);
+  border-radius: var(--radius-lg);
+  padding: 1rem 0.75rem 0.75rem;
+  position: relative;
+}
+.chart-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 2.5rem 1rem;
+}
+.chart-canvas-container {
+  position: relative;
+  height: 220px;
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOP NAV (logos only) ── -->
+<nav class="top-nav">
+  <div class="top-nav-logos">
+    <a href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/"
+       target="_blank" rel="noopener">
+      <img src="project_information/logos/School_of_Engineering-primary-horizonal-all-white.png"
+           alt="Drexel University School of Engineering" class="top-nav-logo-img"/>
+    </a>
+    <div class="top-nav-divider"></div>
+    <a href="https://williampennfoundation.org/program/environment-and-public-space"
+       target="_blank" rel="noopener">
+      <img src="project_information/logos/WPFLogo_stacked_spectral.png"
+           alt="William Penn Foundation" class="top-nav-logo-img"/>
+    </a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-badge">Your Home Sensor — Live Data</div>
+  <h1>Your <em>Air Quality</em>,<br/>Right Now</h1>
+  <p>Real-time readings from the sensor in your home, updated every minute.</p>
+</div>
+
+<!-- ── DASHBOARD IFRAME ── -->
+<div class="dashboard-section" id="live-data">
+  <div class="iframe-card">
+    <iframe id="sensor-iframe"
+            src=""
+            title="Live air quality sensor data"
+            allow="fullscreen"
+            loading="lazy"
+            scrolling="no">
+    </iframe>
+    <div class="no-token" id="no-token">
+      <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="20" stroke="white" stroke-width="2.5"/>
+        <path d="M24 15v10M24 33v.5" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <h3>No sensor linked</h3>
+      <p>This page requires a sensor token in the URL.<br/>Please scan the QR code on your sensor device.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── PARAMETERS / AIR QUALITY METRICS ── -->
+<div class="section" id="parameters">
+  <p class="section-label">Air Quality Metrics</p>
+  <h2>What you're <em>looking at</em></h2>
+  <p class="section-intro">
+    Your sensor tracks six key indicators of indoor air quality.
+    Here's what each one means for your health and comfort.
+  </p>
+  <div class="metrics-grid">
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5"  cy="11" r="2.5" fill="#41b6e6" opacity="0.9"/>
+          <circle cx="12" cy="7"  r="2"   fill="#41b6e6" opacity="0.7"/>
+          <circle cx="17" cy="13" r="1.5" fill="#41b6e6" opacity="0.6"/>
+          <circle cx="9"  cy="16" r="1.5" fill="#6ee7ca" opacity="0.7"/>
+          <circle cx="15" cy="5"  r="1"   fill="#6ee7ca" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <h3>PM₂.₅</h3>
+        <div class="unit"><span style="text-transform:none">µ</span>g/m³ · Fine Particles</div>
+        <p>Tiny particles that travel deep into your lungs. Sources include smoke, dust, and vehicle exhaust. <strong style="color:var(--white)">Good: below 12 µg/m³.</strong></p>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 8.5 Q8 6 13 8.5 Q16 10 19 8" stroke="#41b6e6" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M2 12  Q7 10 11 12 Q14 13.5 18 11.5" stroke="#41b6e6" stroke-width="1.8" stroke-linecap="round" opacity="0.75"/>
+          <path d="M2 15.5 Q6 13.5 10 15.5 Q12 16.5 14 15" stroke="#6ee7ca" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <h3>CO₂</h3>
+        <div class="unit">ppm · Carbon Dioxide</div>
+        <p>A marker of ventilation. High indoor levels (&gt;1,000 ppm) cause drowsiness. <strong style="color:var(--white)">Open a window if it rises.</strong></p>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="2" width="4" height="12" rx="2" stroke="#41b6e6" stroke-width="1.6"/>
+          <rect x="10.2" y="3" width="1.6" height="8" rx="0.8" fill="#41b6e6" opacity="0.5"/>
+          <circle cx="11" cy="17" r="3" fill="#41b6e6" opacity="0.85"/>
+          <line x1="14" y1="6" x2="16" y2="6" stroke="#6ee7ca" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="14" y1="9" x2="15.5" y2="9" stroke="#6ee7ca" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <h3>Temperature</h3>
+        <div class="unit">°F · Thermal Comfort</div>
+        <p>Extreme heat and cold both affect health — especially for children and older adults. <strong style="color:var(--white)">Comfort range: 64–79 °F.</strong></p>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 3 C11 3 5 10 5 14 a6 6 0 0 0 12 0 C17 10 11 3 11 3Z"
+                stroke="#41b6e6" stroke-width="1.6" fill="#41b6e6" fill-opacity="0.18"/>
+          <path d="M8.5 15.5 Q9.5 12.5 13 13" stroke="#6ee7ca" stroke-width="1.3"
+                stroke-linecap="round" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <h3>Humidity</h3>
+        <div class="unit">% RH · Relative Humidity</div>
+        <p>Too dry irritates airways; too humid promotes mold and dust mites. <strong style="color:var(--white)">Ideal range: 30–50% RH.</strong></p>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-icon">
+        <svg width="20" height="20" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="2.8" stroke="#41b6e6" stroke-width="1.5"/>
+          <circle cx="4"  cy="6"  r="1.8" stroke="#6ee7ca" stroke-width="1.4"/>
+          <circle cx="18" cy="6"  r="1.8" stroke="#6ee7ca" stroke-width="1.4"/>
+          <circle cx="11" cy="19" r="1.8" stroke="#41b6e6" stroke-width="1.4" opacity="0.7"/>
+          <line x1="5.3"  y1="7.2"  x2="9.2"  y2="9.8"  stroke="#41b6e6" stroke-width="1.2" opacity="0.6"/>
+          <line x1="12.8" y1="9.8"  x2="16.7" y2="7.2"  stroke="#41b6e6" stroke-width="1.2" opacity="0.6"/>
+          <line x1="11"   y1="13.8" x2="11"   y2="17.2" stroke="#41b6e6" stroke-width="1.2" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <h3>VOC</h3>
+        <div class="unit">ppm · Volatile Organic Compounds</div>
+        <p>Gases from cleaning products, paints, and air fresheners. Can affect respiratory health. <strong style="color:var(--white)">Lower is always better.</strong></p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── WEEKLY REPORT ── -->
+<div class="section" id="report">
+  <p class="section-label">Historical Data</p>
+  <h2>Your <em>Air Quality</em> Report</h2>
+  <p class="section-intro">Select a parameter and view to explore your sensor's historical data.</p>
+
+  <div class="report-controls">
+    <div>
+      <div class="pill-group-label">Parameter</div>
+      <div class="pill-group" id="param-group">
+        <button class="pill-btn active" data-param="Temperature">Temp</button>
+        <button class="pill-btn" data-param="Humidity">Humidity</button>
+        <button class="pill-btn" data-param="PM2.5">PM<sub>2.5</sub></button>
+        <button class="pill-btn" data-param="CO₂">CO₂</button>
+      </div>
+    </div>
+    <div>
+      <div class="pill-group-label">View</div>
+      <div class="pill-group" id="view-group">
+        <button class="pill-btn active" data-view="hourly">Hourly avg · 7 days</button>
+        <button class="pill-btn" data-view="raw">Raw · Last 24 h</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-status" id="chart-status">Loading data…</div>
+    <div class="chart-canvas-container" id="chart-container" style="display:none">
+      <canvas id="aq-chart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── CORSI-ROSENTHAL BOX ── -->
+<div class="section" id="cr-box">
+  <p class="section-label">Air Purification</p>
+  <h2>Your <em>Corsi-Rosenthal Box</em></h2>
+  <p class="section-intro">
+    The Corsi-Rosenthal (CR) Box is a low-cost, high-efficiency do-it-yourself (DIY) air purifier 
+    built from a box fans and MERV-13 filters that can significantly reduce indoor PM<sub>2.5</sub> concentrations. 
+    It will be provided to all participants who are interested in using one in their homes during the second phase of the study. 
+    During this phase, we will continue monitoring PM<sub>2.5</sub> levels and evaluate the effectiveness of the CR Box in reducing indoor air pollution.
+    More information on how to use and maintain your unit will be provided soon.
+  </p>
+  <img src="project_information/CR_box.png"
+       alt="Corsi-Rosenthal Box air purifier"
+       class="cr-img"/>
+</div>
+
+<!-- ── ABOUT THE STUDY ── -->
+<div class="about-strip">
+  <h2>About <em>this study</em></h2>
+  <p>
+    This project is led by Drexel University's Department of Civil, Architectural and
+    Environmental Engineering, funded by the William Penn Foundation.
+    We are working with communities in four Philadelphia neighborhoods —
+    Point Breeze, Grays Ferry, Haddington, and Kingsessing — to monitor indoor
+    air quality and reduce PM<sub>2.5</sub> exposure.
+  </p>
+  <p>Your participation directly contributes to research that will help improve air quality across Philadelphia's environmental justice communities.</p>
+  <div class="stats-row">
+    <div class="stat">
+      <div class="val">~140</div>
+      <div class="lbl">Home sensors deployed</div>
+    </div>
+    <div class="stat">
+      <div class="val">4</div>
+      <div class="lbl">Neighborhoods</div>
+    </div>
+    <div class="stat">
+      <div class="val">12 mo.</div>
+      <div class="lbl">Monitoring campaign</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer id="about">
+  <div class="footer-logos">
+    <a href="https://drexel.edu/engineering/academics/departments/civil-architectural-environmental-engineering/"
+       target="_blank" rel="noopener">
+      <img src="project_information/logos/School_of_Engineering-primary-horizonal-all-white.png"
+           alt="Drexel University School of Engineering" class="footer-logo-img"/>
+    </a>
+    <a href="https://williampennfoundation.org/program/environment-and-public-space"
+       target="_blank" rel="noopener">
+      <img src="project_information/logos/WPFLogo_stacked_spectral.png"
+           alt="William Penn Foundation" class="footer-logo-img"/>
+    </a>
+  </div>
+  <div class="footer-info">
+    <strong style="color:var(--white)">Community-Driven Air Quality Project</strong><br/>
+    Funded by the William Penn Foundation<br/>
+    Summer 2026 – Fall/Winter 2027 · Philadelphia, PA<br/>
+    <a href="mailto:cf889@drexel.edu,msw59@drexel.edu,vj334@drexel.edu">Contact the research team</a>
+  </div>
+</footer>
+
+<!-- ── BOTTOM TAB BAR ── -->
+<nav class="bottom-nav">
+  <a class="tab-btn active" id="tab-live" href="#"
+     onclick="window.scrollTo({top:0,behavior:'smooth'});setActive('tab-live');return false;">
+    <!-- wifi / signal icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="18" r="1.8" fill="currentColor"/>
+      <path d="M8.5 14.5 a5 5 0 0 1 7 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <path d="M5.5 11.5 a9.2 9.2 0 0 1 13 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.6"/>
+    </svg>
+    Live Data
+  </a>
+  <a class="tab-btn" id="tab-params" href="#parameters"
+     onclick="setActive('tab-params')">
+    <!-- bar chart icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3"  y="10" width="4" height="10" rx="1.5" fill="currentColor" opacity="0.7"/>
+      <rect x="10" y="6"  width="4" height="14" rx="1.5" fill="currentColor"/>
+      <rect x="17" y="13" width="4" height="7"  rx="1.5" fill="currentColor" opacity="0.6"/>
+    </svg>
+    Parameters
+  </a>
+  <a class="tab-btn" id="tab-report" href="#report"
+     onclick="setActive('tab-report');initReport()">
+    <!-- line chart icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="3,17 8,11 13,14 21,6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="3" y1="21" x2="21" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.4" stroke-linecap="round"/>
+    </svg>
+    Report
+  </a>
+  <a class="tab-btn" id="tab-cr" href="#cr-box"
+     onclick="setActive('tab-cr')">
+    <!-- fan / filter icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <line x1="7" y1="3" x2="7" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+      <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+      <line x1="17" y1="3" x2="17" y2="21" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+    </svg>
+    CR Box
+  </a>
+  <a class="tab-btn" id="tab-about" href="#about"
+     onclick="setActive('tab-about')">
+    <!-- info icon -->
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" fill="none"/>
+      <line x1="12" y1="11" x2="12" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="7.5" r="1.2" fill="currentColor"/>
+    </svg>
+    About
+  </a>
+</nav>
+
+<script>
+
+  /* ── token → iframe ── */
+  const TOKEN = new URLSearchParams(window.location.search).get('token');
+  (function () {
+    const iframe = document.getElementById('sensor-iframe');
+    const noTok  = document.getElementById('no-token');
+    if (TOKEN) {
+      iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(TOKEN);
+    } else {
+      iframe.style.display = 'none';
+      noTok.style.display  = 'block';
+    }
+  })();
+
+  /* ── active tab highlight ── */
+  function setActive(id) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+
+  /* ── highlight tab on scroll ── */
+  const sections = [
+    { id: 'live-data',   tab: 'tab-live'   },
+    { id: 'parameters',  tab: 'tab-params' },
+    { id: 'cr-box',      tab: 'tab-cr'     },
+    { id: 'about',       tab: 'tab-about'  },
+    { id: 'report',      tab: 'tab-report' },
+  ];
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const match = sections.find(s => s.id === e.target.id);
+        if (match) setActive(match.tab);
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (el) observer.observe(el);
+  });
+  const heroObserver = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) setActive('tab-live');
+  }, { threshold: 0.5 });
+  const hero = document.querySelector('.hero');
+  if (hero) heroObserver.observe(hero);
+
+  /* ════════════════════════════════════════════
+     REPORT / CHART LOGIC
+  ════════════════════════════════════════════ */
+
+  const API = 'https://api.environet.io/v2/search/data_points';
+  let dataPointsCache = null;   // list of available data points for this sensor
+  let chartInstance   = null;
+  let currentParam    = 'Temperature';
+  let currentView     = 'hourly';
+  let reportReady     = false;
+
+  /* Fetch the list of data points (paths) for this token */
+  async function getDataPoints() {
+    if (dataPointsCache) return dataPointsCache;
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: TOKEN})
+    });
+    dataPointsCache = await res.json();
+    return dataPointsCache;
+  }
+
+  /* Find path for a given parameter name */
+  async function getPath(paramName) {
+    const points = await getDataPoints();
+    // Special handling: Temperature → prefer °C version
+    if (paramName === 'Temperature') {
+      const match = points.find(p => p.name === 'Temperature' && p.unit === '°C');
+      return match ? match.path : null;
+    }
+    const match = points.find(p => p.name === paramName);
+    return match ? match.path : null;
+  }
+
+  /* Fetch measurements for a given path */
+  async function getMeasurements(path, fromMs) {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: TOKEN, path, from: fromMs})
+    });
+    const data = await res.json();
+    const entry = Array.isArray(data) ? data.find(d => d.path === path) : data;
+    return entry ? (entry.measurements || []) : [];
+  }
+
+  /* Aggregate raw [ts, val] pairs into hourly averages */
+  function toHourly(measurements) {
+    const buckets = {};
+    measurements.forEach(([ts, val]) => {
+      if (val === null || val === undefined) return;
+      const h = Math.floor(ts / 3600000) * 3600000;
+      if (!buckets[h]) buckets[h] = {sum: 0, count: 0};
+      buckets[h].sum   += val;
+      buckets[h].count += 1;
+    });
+    return Object.entries(buckets)
+      .sort((a, b) => a[0] - b[0])
+      .map(([h, {sum, count}]) => ({x: +h, y: +(sum / count).toFixed(2)}));
+  }
+
+  /* Format timestamp for chart labels */
+  function fmtHourly(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' ' +
+           d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
+  }
+  function fmtRaw(ts) {
+    const d = new Date(ts);
+    return d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
+  }
+
+  /* Param → units label */
+  const UNITS = {
+    'PM2.5': 'µg/m³', 'CO₂': 'ppm', 'Temperature': '°F',
+    'Humidity': '%'
+  };
+
+  /* Render or update the Chart.js chart */
+  function renderChart(points, paramName, view) {
+    const status    = document.getElementById('chart-status');
+    const container = document.getElementById('chart-container');
+
+    if (!points.length) {
+      status.textContent = 'No data available for this parameter.';
+      status.style.display = 'block';
+      container.style.display = 'none';
+      return;
+    }
+
+    status.style.display = 'none';
+    container.style.display = 'block';
+
+    const labels = points.map(p => view === 'hourly' ? fmtHourly(p.x) : fmtRaw(p.x));
+    const values = points.map(p => p.y);
+
+    const accent  = '#41b6e6';
+    const accent2 = '#6ee7ca';
+
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(document.getElementById('aq-chart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: paramName + ' (' + (UNITS[paramName] || '') + ')',
+          data: values,
+          borderColor: accent,
+          backgroundColor: 'rgba(65,182,230,0.10)',
+          borderWidth: 1.8,
+          pointRadius: view === 'raw' ? 0 : 2,
+          pointHoverRadius: 4,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(4,29,56,0.95)',
+            borderColor: 'rgba(65,182,230,0.25)',
+            borderWidth: 1,
+            titleColor: accent2,
+            bodyColor: '#fff',
+            padding: 10
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: 'rgba(255,255,255,0.45)',
+              font: { size: 9, family: 'Inter' },
+              maxTicksLimit: view === 'hourly' ? 7 : 8,
+              maxRotation: 30
+            },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          },
+          y: {
+            ticks: {
+              color: 'rgba(255,255,255,0.55)',
+              font: { size: 10, family: 'Inter' }
+            },
+            grid: { color: 'rgba(255,255,255,0.06)' }
+          }
+        }
+      }
+    });
+  }
+
+  /* Main fetch + render function */
+  async function loadChart() {
+    if (!TOKEN) {
+      document.getElementById('chart-status').textContent = 'No sensor token — scan the QR code to load your data.';
+      return;
+    }
+    document.getElementById('chart-status').textContent = 'Loading data…';
+    document.getElementById('chart-status').style.display = 'block';
+    document.getElementById('chart-container').style.display = 'none';
+
+    try {
+      const path = await getPath(currentParam);
+      if (!path) {
+        document.getElementById('chart-status').textContent = 'Parameter not available for this sensor.';
+        return;
+      }
+
+      const now     = Date.now();
+      const fromMs  = currentView === 'hourly'
+                      ? now - 7  * 24 * 3600 * 1000   // 7 days
+                      : now - 1  * 24 * 3600 * 1000;  // 24 hours
+
+      let raw = await getMeasurements(path, fromMs);
+
+      // Convert Temperature from °C (API) to °F for display
+      if (currentParam === 'Temperature') {
+        raw = raw.map(([ts, val]) =>
+          [ts, val !== null && val !== undefined ? +(val * 9/5 + 32).toFixed(2) : val]
+        );
+      }
+
+      let points;
+      if (currentView === 'hourly') {
+        points = toHourly(raw);
+      } else {
+        // Raw: use every reading, map to {x, y}
+        points = raw.map(([ts, val]) => ({x: ts, y: val}));
+      }
+
+      renderChart(points, currentParam, currentView);
+    } catch (err) {
+      document.getElementById('chart-status').textContent = 'Could not load data. Please try again.';
+      document.getElementById('chart-status').style.display = 'block';
+      document.getElementById('chart-container').style.display = 'none';
+      console.error(err);
+    }
+  }
+
+  /* Pill button interactions */
+  document.getElementById('param-group').addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    document.querySelectorAll('#param-group .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentParam = btn.dataset.param;
+    loadChart();
+  });
+
+  document.getElementById('view-group').addEventListener('click', e => {
+    const btn = e.target.closest('.pill-btn');
+    if (!btn) return;
+    document.querySelectorAll('#view-group .pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+    loadChart();
+  });
+
+  /* Called when Report tab is first clicked — lazy-loads Chart.js then renders */
+  function initReport() {
+    if (reportReady) return;
+    reportReady = true;
+    if (typeof Chart !== 'undefined') {
+      loadChart();
+    } else {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+      s.onload = () => loadChart();
+      s.onerror = () => {
+        document.getElementById('chart-status').textContent = 'Could not load chart library. Check your connection.';
+      };
+      document.head.appendChild(s);
+    }
+  }
+
+</script>
+
+</body>
+</html>
