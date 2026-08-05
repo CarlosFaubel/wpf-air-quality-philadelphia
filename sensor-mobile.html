@@ -448,7 +448,7 @@ footer {
       <div class="metric-body">
         <h3>PM₂.₅</h3>
         <div class="unit"><span style="text-transform:none">µ</span>g/m³ · Fine Particles</div>
-        <p>Tiny particles that can travel deep into your lungs. Sources include smoke, dust, and vehicle exhaust. <strong style="color:var(--white)">NAAQS Standards: below 9 µg/m³ (annual avg.) or 35 µg/m³ (24-hour avg.).</strong></p>
+        <p>Tiny particles that can travel deep into your lungs. Sources include smoke, dust, and vehicle exhaust. <strong style="color:var(--white)">Lower is always better.</strong></p>
       </div>
     </div>
 
@@ -480,7 +480,7 @@ footer {
       <div class="metric-body">
         <h3>Temperature</h3>
         <div class="unit">°F · Thermal Comfort</div>
-        <p>Extreme heat and cold both affect health — especially for children and older adults. <strong style="color:var(--white)">Comfort range: 64–79 °F.</strong></p>
+        <p>Extreme heat and cold both affect health — especially for children and older adults.</p>
       </div>
     </div>
 
@@ -496,7 +496,7 @@ footer {
       <div class="metric-body">
         <h3>Humidity</h3>
         <div class="unit">% RH · Relative Humidity</div>
-        <p>Too dry irritates airways; too humid promotes mold and dust mites. <strong style="color:var(--white)">Ideal range: 30–50% RH.</strong></p>
+        <p>Too dry irritates airways; too humid promotes mold and dust mites.</p>
       </div>
     </div>
 
@@ -561,11 +561,11 @@ footer {
   <h2>Your <em>Corsi-Rosenthal Box</em></h2>
   <p class="section-intro">
     The Corsi-Rosenthal (CR) Box is a low-cost, high-efficiency do-it-yourself (DIY) air purifier 
-    built from a box fan and MERV-13 filters that can significantly reduce indoor PM<sub>2.5</sub> concentrations. 
-    It will be provided to all participants who are interested in using one in their homes during the second phase of the study. 
-    During this phase, we will continue monitoring PM<sub>2.5</sub> levels and evaluate the effectiveness of the CR Box in reducing indoor air pollution.
-  </p>  
-  <p class="section-intro">More information on how to use and maintain your unit will be provided soon.</p>
+    built from a box fan and MERV-13 filters that can significantly reduce indoor PM<sub>2.5</sub> concentrations.
+  </p> 
+  <p class="section-intro">It will be provided to all participants who are interested in using one in their homes during the second phase of the study. 
+    During this phase, we will continue monitoring PM<sub>2.5</sub> levels and evaluate the effectiveness of the CR Box in reducing indoor air pollution.</p> 
+  <p class="section-intro">More information on how to build and use a CR Box will be provided soon.</p>
    
   <img src="project_information/CR_box.png"
        alt="Corsi-Rosenthal Box air purifier"
@@ -950,9 +950,13 @@ footer {
     loadChart();
   });
 
-  /* Called when Report tab is first clicked — lazy-loads Chart.js then renders */
+  /* Lazy-loads Chart.js once, then always re-fetches data */
   function initReport() {
-    if (reportReady) return;
+    if (reportReady) {
+      /* Chart.js already loaded — just refresh the data */
+      loadChart();
+      return;
+    }
     reportReady = true;
     if (typeof Chart !== 'undefined') {
       loadChart();
@@ -966,6 +970,9 @@ footer {
       document.head.appendChild(s);
     }
   }
+
+  /* Auto-init report on page load so chart is ready when user scrolls to it */
+  document.addEventListener('DOMContentLoaded', () => initReport());
 
 </script>
 
