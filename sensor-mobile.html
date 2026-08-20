@@ -149,11 +149,32 @@ nav.bottom-nav {
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0,0,0,0.40);
 }
-.iframe-card iframe {
+/* Windowed double-iframe: the circular AQ gauge sits between the device
+   header and the metrics grid inside the third-party Environet dashboard,
+   so it can't be cropped by simply clipping the top or bottom. Instead we
+   show two copies of the same iframe, each clipped to a fixed-height
+   window: the first shows just the header, the second is scrolled up
+   internally so it starts right after the circle, showing only the
+   metrics grid. Tune HEADER_H and METRICS_START below if the seam doesn't
+   line up on a real device — these are starting estimates, not measured
+   from the live dashboard. */
+.iframe-window {
+  overflow: hidden;
+}
+.iframe-window-header {
+  height: 130px;                    /* HEADER_H — device name + logo row */
+}
+.iframe-window-metrics {
+  height: calc(1350px - 560px);     /* 1350 total minus METRICS_START */
+}
+.sensor-iframe {
   display: block;
   width: 100%;
   height: 1350px;
   border: none;
+}
+.iframe-window-metrics .sensor-iframe {
+  margin-top: -560px;                /* METRICS_START — skip header + circle */
 }
 
 /* No-token state */
@@ -404,16 +425,29 @@ footer {
   <p>Real-time readings from the sensor in your home, updated every minute.</p>
 </div>
 
-<!-- ── DASHBOARD IFRAME ── -->
+<!-- ── DASHBOARD IFRAME (circle gauge hidden — see .iframe-window CSS) ── -->
 <div class="dashboard-section" id="live-data">
   <div class="iframe-card">
-    <iframe id="sensor-iframe"
-            src=""
-            title="Live air quality sensor data"
-            allow="fullscreen"
-            loading="lazy"
-            scrolling="no">
-    </iframe>
+    <div class="iframe-window iframe-window-header">
+      <iframe id="sensor-iframe-header"
+              class="sensor-iframe"
+              src=""
+              title="Live air quality sensor data — device header"
+              allow="fullscreen"
+              loading="lazy"
+              scrolling="no">
+      </iframe>
+    </div>
+    <div class="iframe-window iframe-window-metrics">
+      <iframe id="sensor-iframe-metrics"
+              class="sensor-iframe"
+              src=""
+              title="Live air quality sensor data — metrics"
+              allow="fullscreen"
+              loading="lazy"
+              scrolling="no">
+      </iframe>
+    </div>
     <div class="no-token" id="no-token">
       <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="24" cy="24" r="20" stroke="white" stroke-width="2.5"/>
@@ -676,16 +710,20 @@ footer {
 
 <script>
 
-  /* ── token → iframe ── */
+  /* ── token → iframes (header + metrics windows) ── */
   const TOKEN = new URLSearchParams(window.location.search).get('token');
   (function () {
-    const iframe = document.getElementById('sensor-iframe');
-    const noTok  = document.getElementById('no-token');
+    const iframeHeader  = document.getElementById('sensor-iframe-header');
+    const iframeMetrics = document.getElementById('sensor-iframe-metrics');
+    const noTok         = document.getElementById('no-token');
     if (TOKEN) {
-      iframe.src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(TOKEN);
+      const src = 'https://dashboard.environet.io/?token=' + encodeURIComponent(TOKEN);
+      iframeHeader.src  = src;
+      iframeMetrics.src = src;
     } else {
-      iframe.style.display = 'none';
-      noTok.style.display  = 'block';
+      iframeHeader.closest('.iframe-window').style.display  = 'none';
+      iframeMetrics.closest('.iframe-window').style.display = 'none';
+      noTok.style.display = 'block';
     }
   })();
 
